@@ -1,0 +1,45 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestion catalogue | O’thentik Beauty</title><meta name="theme-color" content="#651b87">
+<style>
+:root{--v:#651b87;--p:#e21b91;--bg:#faf7fb;--ink:#24172b;--muted:#77687c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#651b87,#e21b91);color:white;padding:24px 18px}header h1{margin:0 0 6px;font-size:25px}header p{margin:0;opacity:.9}
+main{max-width:850px;margin:auto;padding:18px}.card{background:white;border:1px solid #eaddec;border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 8px 28px #3a164010}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-weight:800;font-size:13px}input,select{width:100%;padding:13px;border:1px solid #ddcfe1;border-radius:12px;margin-top:6px;font:inherit}.full{grid-column:1/-1}
+button{border:0;border-radius:12px;padding:13px 16px;font-weight:800;cursor:pointer;font-size:14px}.primary{background:var(--v);color:white}.pink{background:var(--p);color:white}.ghost{background:#f3eaf5;color:var(--v)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.note{background:#fff7fc;border-left:4px solid var(--p);padding:12px;border-radius:10px;color:var(--muted);font-size:13px;line-height:1.5}
+.item{display:flex;align-items:center;gap:12px;border-top:1px solid #eee5f0;padding:12px 0}.thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;background:#eee}.item strong{display:block}.item small{color:var(--muted)}.item button{margin-left:auto}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{align-items:flex-start}.item button{margin-left:0}}
+</style></head><body>
+<header><h1>O’thentik Beauty — Catalogue</h1><p>Prépare tes nouveaux modèles facilement.</p></header>
+<main>
+<section class="card"><h2>➕ Ajouter un modèle</h2>
+<div class="note">Ajoute le nom, le prix, la catégorie, le détail et le nom du fichier photo. Tu peux ensuite télécharger le catalogue mis à jour.</div>
+<div class="grid" style="margin-top:15px">
+<div><label>Nom du modèle</label><input id="name" placeholder="Ex. Coupe dame"></div>
+<div><label>Prix (F CFA)</label><input id="price" type="number" min="0" placeholder="8500"></div>
+<div><label>Catégorie</label><select id="category"><option>Coupes dames</option><option>Perruques</option><option>Coupes carrées</option><option>Jerry bouclées</option></select></div>
+<div><label>Détail</label><input id="detail" placeholder="Ex. Coupe dame • style court"></div>
+<div class="full"><label>Nom du fichier photo</label><input id="image" placeholder="images/mon-modele.jpg"></div>
+</div>
+<div class="actions"><button class="primary" onclick="addProduct()">Ajouter au catalogue</button><button class="ghost" onclick="resetForm()">Effacer</button></div></section>
+<section class="card"><h2>🛍️ Modèles actuels</h2><div id="list"></div>
+<div class="actions"><button class="pink" onclick="downloadProducts()">Télécharger le catalogue</button><button class="ghost" onclick="resetCatalog()">Réinitialiser</button></div></section>
+<section class="card"><h2>📌 Publication</h2><p>Pour publier un nouveau modèle : ajoute aussi sa photo dans <b>images/</b>, télécharge <b>products.js</b>, remplace l’ancien fichier dans le projet Vercel puis redéploie.</p>
+<p><b>Important :</b> cette V8 prépare la gestion du catalogue. Une vraie modification en ligne sans redéploiement nécessitera ensuite une base de données.</p></section>
+</main>
+<script src="products.js"></script><script>
+const baseProducts=JSON.parse(JSON.stringify(window.OTHENTIK_PRODUCTS||[]));
+let products=JSON.parse(localStorage.getItem('othentik_v8_products')||JSON.stringify(baseProducts));
+function money(n){return new Intl.NumberFormat('fr-FR').format(n)+' F CFA'}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function save(){localStorage.setItem('othentik_v8_products',JSON.stringify(products));render()}
+function render(){document.querySelector('#list').innerHTML=products.map((p,i)=>'<div class="item"><img class="thumb" src="'+esc(p.image)+'" alt=""><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.category)+' · '+money(p.price)+'</small></div><button class="ghost" onclick="removeProduct('+i+')">Supprimer</button></div>').join('')}
+function addProduct(){const name=document.querySelector('#name').value.trim(),price=Number(document.querySelector('#price').value);if(!name||!price){alert('Indique au minimum le nom et le prix.');return}products.push({id:Date.now(),name,price,category:document.querySelector('#category').value,detail:document.querySelector('#detail').value.trim()||name,image:document.querySelector('#image').value.trim()||'images/placeholder.jpg'});save();resetForm();alert('Modèle ajouté.')}
+function removeProduct(i){if(confirm('Supprimer ce modèle ?')){products.splice(i,1);save()}}
+function resetForm(){['name','price','detail','image'].forEach(id=>document.querySelector('#'+id).value='')}
+function resetCatalog(){if(confirm('Revenir au catalogue initial ?')){products=JSON.parse(JSON.stringify(baseProducts));save()}}
+function downloadProducts(){const body='window.OTHENTIK_PRODUCTS = '+JSON.stringify(products,null,2)+';\n';const blob=new Blob([body],{type:'text/javascript;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='products.js';a.click();URL.revokeObjectURL(a.href)}
+render();
+</script></body></html>

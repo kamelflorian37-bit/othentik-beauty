@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Sitemap: https://othentik-beauty-v81-seo.vercel.app/sitemap.xml
